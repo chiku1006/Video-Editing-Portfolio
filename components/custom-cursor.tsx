@@ -3,9 +3,10 @@
 import { useEffect, useRef } from "react";
 
 const pointerQuery =
-  "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
+  "(any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference)";
 const nativeTargets =
-  "p,h1,h2,h3,h4,dd,dt,address,input,textarea,select,[contenteditable],dialog[open]";
+  "input,textarea,select,[contenteditable]:not([contenteditable='false']),video[controls],iframe,dialog[open]";
+const actionTargets = "a[href],button,[data-cursor]";
 
 type Surface = { element: HTMLElement; box: DOMRect };
 type SurfaceKind = "magnet" | "depth" | "scene";
@@ -21,28 +22,30 @@ export function CustomCursor() {
   const word = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    if (!node.current || !word.current) return;
     const cursor = node.current;
     const label = word.current;
-    if (!cursor || !label) return;
     const root = document.documentElement;
     const preference = window.matchMedia(pointerQuery);
     let magnet: Surface | null = null;
     let depth: Surface | null = null;
     let scene: Surface | null = null;
-    let nextX = 0;
-    let nextY = 0;
     let x = 0;
     let y = 0;
+    let tracking = false;
     let visible = false;
     let frame = 0;
-    let moved = false;
+    let boundsChanged = false;
 
     function selectSurface(
       previous: Surface | null,
       element: HTMLElement | null,
       kind: SurfaceKind,
     ) {
-      if (previous?.element === element) return previous;
+      if (previous?.element === element) {
+        if (boundsChanged) previous.box = element.getBoundingClientRect();
+        return previous;
+      }
       clearSurface(previous, kind);
       return element ? { element, box: element.getBoundingClientRect() } : null;
     }
@@ -52,68 +55,53 @@ export function CustomCursor() {
       const { element, box } = surface;
       const px = Math.max(
         -1,
-        Math.min(1, ((nextX - box.left) / Math.max(box.width, 1)) * 2 - 1),
+        Math.min(1, ((x - box.left) / Math.max(box.width, 1)) * 2 - 1),
       );
       const py = Math.max(
         -1,
-        Math.min(1, ((nextY - box.top) / Math.max(box.height, 1)) * 2 - 1),
+        Math.min(1, ((y - box.top) / Math.max(box.height, 1)) * 2 - 1),
       );
       element.style.setProperty("--" + kind + "-x", String(px));
       element.style.setProperty("--" + kind + "-y", String(py));
     }
 
-    function draw() {
-      frame = 0;
-      if (moved) {
-        moved = false;
-        setSurface(magnet, "magnet");
-        setSurface(depth, "depth");
-        setSurface(scene, "scene");
-      }
-      if (!visible) return;
-      const dx = nextX - x;
-      const dy = nextY - y;
-      const damping = Math.min(0.78, 0.48 + Math.hypot(dx, dy) * 0.0012);
-      x += dx * damping;
-      y += dy * damping;
-      cursor!.style.transform =
-        "translate3d(" + x.toFixed(2) + "px," + y.toFixed(2) + "px,0)";
-      if (Math.abs(dx) + Math.abs(dy) > 0.25)
-        frame = requestAnimationFrame(draw);
+    function setVisible(show: boolean) {
+      if (visible === show) return;
+      visible = show;
+      root.classList.toggle("custom-cursor-active", show);
     }
 
-    function reset() {
+    function hide() {
       clearSurface(magnet, "magnet");
       clearSurface(depth, "depth");
       clearSurface(scene, "scene");
       magnet = depth = scene = null;
-      visible = moved = false;
-      cancelAnimationFrame(frame);
-      frame = 0;
-      root.classList.remove("custom-cursor-active");
-      cursor!.removeAttribute("data-visible");
+      setVisible(false);
     }
 
-    function move(event: PointerEvent) {
+    function reset() {
+      hide();
+      tracking = false;
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+
+    function draw() {
+      frame = 0;
+      // Scrolling and clicks can change what is under a stationary pointer.
+      const target = document.elementFromPoint(x, y);
       if (
-        !preference.matches ||
-        event.pointerType !== "mouse" ||
-        !(event.target instanceof Element)
-      )
-        return;
-      const target = event.target;
-      const action = target.closest<HTMLElement>("a,button,[data-cursor]");
-      const native = target.closest(
-        "dialog[open],input,textarea,select,[contenteditable]",
-      );
-      const useNative = Boolean(
-        native || (!action && target.closest(nativeTargets)),
-      );
-      const showCursor = !useNative && event.buttons === 0;
-      if (native || event.buttons) {
-        reset();
+        !target ||
+        target.closest(nativeTargets) ||
+        document.fullscreenElement
+      ) {
+        hide();
         return;
       }
+      const candidate = target.closest<HTMLElement>(actionTargets);
+      const action = candidate?.matches(":disabled,[aria-disabled='true']")
+        ? null
+        : candidate;
       magnet = selectSurface(
         magnet,
         action?.closest<HTMLElement>("[data-magnetic]") ?? null,
@@ -129,58 +117,83 @@ export function CustomCursor() {
         target.closest<HTMLElement>("[data-scene]"),
         "scene",
       );
-      nextX = event.clientX;
-      nextY = event.clientY;
-      moved = true;
-      if (showCursor !== visible) {
-        visible = showCursor;
-        root.classList.toggle("custom-cursor-active", showCursor);
-        cursor!.toggleAttribute("data-visible", showCursor);
-        if (showCursor) {
-          x = nextX;
-          y = nextY;
-        }
+      boundsChanged = false;
+      setSurface(magnet, "magnet");
+      setSurface(depth, "depth");
+      setSurface(scene, "scene");
+
+      const state = action?.dataset.cursor ?? (action ? "link" : "dot");
+      if (cursor.dataset.state !== state) {
+        cursor.dataset.state = state;
+        if (state === "PLAY" || state === "DRAG") label.textContent = state;
       }
-      if (showCursor) {
-        const state = action?.dataset.cursor ?? (action ? "link" : "dot");
-        cursor!.dataset.state = state;
-        const nextLabel = state === "PLAY" || state === "DRAG" ? state : "";
-        if (label!.textContent !== nextLabel) label!.textContent = nextLabel;
+      cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      setVisible(true);
+    }
+
+    function scheduleDraw() {
+      if (tracking && !frame) frame = requestAnimationFrame(draw);
+    }
+
+    function move(event: PointerEvent) {
+      if (!preference.matches) return;
+      if (event.pointerType !== "mouse" || event.buttons) {
+        reset();
+        return;
       }
-      if (!frame) frame = requestAnimationFrame(draw);
+      x = event.clientX;
+      y = event.clientY;
+      tracking = true;
+      scheduleDraw();
+    }
+
+    function down(event: PointerEvent) {
+      if (event.pointerType !== "mouse") reset();
+    }
+
+    function refreshBounds() {
+      boundsChanged = true;
+      scheduleDraw();
     }
 
     const leave = (event: PointerEvent) => {
-      if (!event.relatedTarget) reset();
+      if (event.pointerType === "mouse" && !event.relatedTarget) reset();
     };
     const keyboard = (event: KeyboardEvent) => {
       if (event.key === "Tab") reset();
     };
-    const clearBounds = () => {
-      if (magnet) magnet.box = magnet.element.getBoundingClientRect();
-      if (depth) depth.box = depth.element.getBoundingClientRect();
-      if (scene) scene.box = scene.element.getBoundingClientRect();
+    const preferenceChanged = () => {
+      if (!preference.matches) reset();
     };
+    window.addEventListener("pointerover", move, { passive: true });
     window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerup", move, { passive: true });
     window.addEventListener("pointerout", leave, { passive: true });
-    window.addEventListener("pointerdown", reset, { passive: true });
-    window.addEventListener("scroll", clearBounds, { passive: true });
-    window.addEventListener("resize", clearBounds);
+    window.addEventListener("pointerdown", down, { passive: true });
+    window.addEventListener("pointercancel", reset, { passive: true });
+    window.addEventListener("scroll", refreshBounds, {
+      passive: true,
+      capture: true,
+    });
+    window.addEventListener("resize", refreshBounds);
     window.addEventListener("blur", reset);
     document.addEventListener("keydown", keyboard);
     document.addEventListener("visibilitychange", reset);
-    preference.addEventListener("change", reset);
+    preference.addEventListener("change", preferenceChanged);
     return () => {
       reset();
+      window.removeEventListener("pointerover", move);
       window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", move);
       window.removeEventListener("pointerout", leave);
-      window.removeEventListener("pointerdown", reset);
-      window.removeEventListener("scroll", clearBounds);
-      window.removeEventListener("resize", clearBounds);
+      window.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointercancel", reset);
+      window.removeEventListener("scroll", refreshBounds, true);
+      window.removeEventListener("resize", refreshBounds);
       window.removeEventListener("blur", reset);
       document.removeEventListener("keydown", keyboard);
       document.removeEventListener("visibilitychange", reset);
-      preference.removeEventListener("change", reset);
+      preference.removeEventListener("change", preferenceChanged);
     };
   }, []);
 

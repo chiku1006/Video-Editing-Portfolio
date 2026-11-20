@@ -343,6 +343,36 @@
   font: italic 400 1.12em/0.85 var(--serif);
 }
 
+@media screen and (not (forced-colors: active)) {
+  @supports (background-clip: text) or (-webkit-background-clip: text) {
+    :is(
+      .studio-hero-title,
+      .featured-title,
+      .work-title,
+      .editorial-title,
+      .studio-footer-call h2
+    ) em {
+      /* Give the italic glyphs room to overhang without changing text spacing. */
+      margin-inline: -0.08em;
+      padding-inline: 0.08em;
+      background-image: linear-gradient(
+        to right,
+        var(--foreground) 36%,
+        71%,
+        var(--accent)
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .editorial-title em {
+      /* Fit the gradient to the word while keeping the existing line break. */
+      inline-size: fit-content;
+    }
+  }
+}
+
 .work-index {
   display: flex;
   align-items: center;
@@ -386,53 +416,140 @@
   scroll-margin-top: 10px;
 }
 
-.work-card-portrait {
+.short-form-header {
   display: grid;
-  grid-template-columns: minmax(0, 350px) minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(20px, 5vw, 90px);
+  gap: clamp(10px, 1.5vw, 20px);
+  margin-bottom: clamp(22px, 3vw, 40px);
+  padding-top: clamp(20px, 3.5vw, 46px);
+  border-top: 1px solid var(--stroke);
 }
 
-.work-card-portrait .work-cardDetails {
-  display: grid;
-  justify-content: start;
-  gap: 10px;
-  padding: 0;
+.work-page .short-form-title {
+  font-size: clamp(34px, 7vw, 94px);
 }
 
-.work-card-portrait .work-cardDetails h3 {
-  color: var(--foreground);
-  font: 700 clamp(27px, 4vw, 54px)/1.02 var(--display);
-  letter-spacing: 0;
-  word-spacing: 0.045em;
-}
-
-.work-projectCopy {
-  max-width: 40ch;
-  margin-top: 14px;
+.short-form-intro {
+  max-width: 48ch;
   color: var(--muted);
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: clamp(14px, 1.3vw, 17px);
+  line-height: 1.55;
 }
 
-.work-card-portrait .work-projectType {
-  text-align: left;
-  align-self: start;
-  color: var(--accent);
-}
-
-.motion-gallery-portrait .motion-row {
+.short-form-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  height: auto;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 1.25vw, 18px);
+  --short-form-inset: clamp(12px, 1.3vw, 18px);
 }
 
-.motion-gallery-portrait .motion-cell {
+.short-form-grid .motion-tile {
+  width: 100%;
+  height: auto;
   aspect-ratio: 9 / 16;
 }
 
-.motion-gallery-portrait .motion-caption {
-  display: none;
+.short-form-grid .short-form-featured {
+  aspect-ratio: auto;
+}
+
+.short-form-grid .motion-card {
+  border-color: var(--stroke);
+  border-radius: 12px;
+}
+
+.short-form-grid .motion-card:not(:disabled):is(:hover, :focus-visible),
+.short-form-featured .motion-card {
+  border-color: var(--accent-border);
+}
+
+.short-form-featured :is(.motion-poster, .motion-preview) {
+  object-position: center 38%;
+}
+
+.short-form-grid .motion-card::after {
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 18%),
+    transparent 24%,
+    transparent 42%,
+    rgb(0 0 0 / 78%) 76%,
+    rgb(0 0 0 / 98%)
+  );
+}
+
+.short-form-featured .motion-play {
+  width: 52px;
+  height: 52px;
+}
+
+.short-form-featured .motion-badge {
+  top: var(--short-form-inset);
+  left: var(--short-form-inset);
+  text-transform: uppercase;
+}
+
+.short-form-grid .motion-duration {
+  position: absolute;
+  z-index: 1;
+  top: var(--short-form-inset);
+  right: var(--short-form-inset);
+}
+
+.short-form-grid .short-form-caption {
+  inset: auto var(--short-form-inset) var(--short-form-inset);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 5px;
+  overflow-wrap: anywhere;
+}
+
+.short-form-caption .motion-label {
+  margin: 0;
+}
+
+.short-form-caption .motion-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(16px, 1.5vw, 22px);
+}
+
+.short-form-featured .motion-title {
+  font-size: clamp(22px, 2.6vw, 36px);
+}
+
+.short-form-description {
+  max-width: 38ch;
+  color: var(--foreground);
+  font-size: clamp(12px, 1.05vw, 14px);
+  line-height: 1.45;
+}
+
+.short-form-type {
+  color: var(--accent);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (width < 1100px) {
+  .short-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .short-form-grid .motion-tile {
+    aspect-ratio: 4 / 5;
+  }
+}
+
+@media (max-width: 640px) {
+  .short-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .short-form-grid .motion-tile {
+    aspect-ratio: 9 / 14;
+  }
 }
 
 .studio-cursor {
@@ -443,13 +560,14 @@
   width: 0;
   height: 0;
   opacity: 0;
-  z-index: 100;
+  z-index: 101;
   pointer-events: none;
 }
 
 .studio-cursor-core {
   position: absolute;
-  inset: auto;
+  top: 0;
+  left: 0;
   display: grid;
   width: 64px;
   height: 64px;
@@ -467,11 +585,12 @@
   inset: 0;
   border-radius: 50%;
   transform: scale(0.16);
-  background: var(--accent);
+  background-color: var(--accent);
+  /* The inset stroke scales to one visible pixel in the link state. */
+  box-shadow: inset 0 0 0 2.4px var(--accent);
   transition:
     transform 0.24s var(--ease),
-    background 0.2s ease,
-    opacity 0.2s ease;
+    background-color 0.2s ease;
 }
 
 .studio-cursor-core > span {
@@ -482,8 +601,7 @@
 
 .studio-cursor[data-state="link"] .studio-cursor-core::before {
   transform: scale(0.42);
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--accent);
+  background-color: transparent;
 }
 
 .studio-cursor:is([data-state="PLAY"], [data-state="DRAG"])
@@ -496,15 +614,16 @@
   opacity: 1;
 }
 
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+@media (any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference) {
   .studio-cursor {
     display: block;
   }
-  .studio-cursor[data-visible] {
+  /* The browser's top layer uses the native cursor, including the backdrop. */
+  html.custom-cursor-active:not(:has(dialog[open], :fullscreen)) .studio-cursor {
     opacity: 1;
   }
-  html.custom-cursor-active,
-  html.custom-cursor-active * {
+  html.custom-cursor-active:not(:has(dialog[open], :fullscreen)),
+  html.custom-cursor-active:not(:has(dialog[open], :fullscreen)) * {
     cursor: none !important;
   }
 
@@ -594,12 +713,6 @@
   }
   .studio-hero-meta > a {
     display: none;
-  }
-  .work-card-portrait {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .work-card-portrait > .motion-gallery {
-    max-width: 350px;
   }
 }
 

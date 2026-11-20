@@ -289,16 +289,6 @@ html:has(.motion-dialog[open]) {
   border-radius: 0;
 }
 
-/* The native top layer sits above the portfolio cursor. */
-html.custom-cursor-active .motion-dialog,
-html.custom-cursor-active .motion-dialog * {
-  cursor: auto !important;
-}
-
-html.custom-cursor-active .motion-dialog :is(button, input) {
-  cursor: pointer !important;
-}
-
 @keyframes motion-backdrop-in {
   from {
     opacity: 0;

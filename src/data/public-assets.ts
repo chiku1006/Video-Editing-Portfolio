@@ -7,7 +7,7 @@ export function hasPublicAsset(src: string) {
   return existsSync(path.join(process.cwd(), "public", src));
 }
 
-export function withMediaAvailability(item: GalleryMedia) {
+export function withMediaAvailability<T extends GalleryMedia>(item: T) {
   return {
     ...item,
     videoAvailable: hasPublicAsset(item.videoSrc),

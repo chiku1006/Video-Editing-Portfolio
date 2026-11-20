@@ -11,7 +11,7 @@ import {
   useState,
   type PointerEvent,
 } from "react";
-import type { GalleryMedia } from "@/src/data/projects";
+import type { GalleryMedia, Project } from "@/src/data/projects";
 import { VideoPlayer } from "./VideoPlayer";
 import { formatTime, setGalleryPlaying } from "./work-media";
 import "./motion-gallery.css";
@@ -24,6 +24,20 @@ export type GalleryItem = GalleryMedia & {
   posterAvailable: boolean;
   duration?: number;
 };
+
+type ShortFormDetails = Pick<Project, "category" | "description" | "type">;
+
+type MotionGalleryProps =
+  | {
+      showreel?: GalleryItem;
+      projects: readonly GalleryItem[];
+      variant?: "hero";
+    }
+  | {
+      showreel?: never;
+      projects: readonly (GalleryItem & ShortFormDetails)[];
+      variant: "short-form";
+    };
 
 function MotionDialog({
   item,
@@ -88,6 +102,7 @@ function MotionCard({
   item,
   sizes,
   featured = false,
+  shortForm,
   onPreview,
   onStop,
   onOpen,
@@ -98,23 +113,32 @@ function MotionCard({
   item: GalleryItem;
   sizes?: string;
   featured?: boolean;
+  shortForm?: ShortFormDetails & { featured: boolean };
   onPreview: (event: PointerEvent<HTMLButtonElement>, src: string) => void;
   onStop: () => void;
   onOpen: (button: HTMLButtonElement, item: GalleryItem) => void;
   onPlaying: (video: HTMLVideoElement) => void;
   onError: (video: HTMLVideoElement) => void;
 }) {
+  const canPreview = item.videoAvailable && (!shortForm || shortForm.featured);
+  const descriptionId = shortForm ? `${id}-description` : undefined;
   return (
     <article
       id={id}
-      className={featured ? "motion-tile motion-tile-featured" : "motion-tile"}
+      className={
+        featured
+          ? "motion-tile motion-tile-featured"
+          : shortForm?.featured
+            ? "motion-tile short-form-featured"
+            : "motion-tile"
+      }
       data-scroll-reveal
     >
       <button
         type="button"
         className="motion-card"
         data-no-poster={!item.posterAvailable || undefined}
-        data-depth=""
+        data-depth={shortForm ? undefined : ""}
         data-cursor={item.videoAvailable ? "PLAY" : undefined}
         aria-label={
           item.videoAvailable
@@ -122,10 +146,13 @@ function MotionCard({
             : `${item.title} — video unavailable`
         }
         aria-haspopup={item.videoAvailable ? "dialog" : undefined}
+        aria-describedby={descriptionId}
         disabled={!item.videoAvailable}
-        onPointerEnter={(event) => onPreview(event, item.videoSrc)}
-        onPointerLeave={onStop}
-        onPointerCancel={onStop}
+        onPointerEnter={
+          canPreview ? (event) => onPreview(event, item.videoSrc) : undefined
+        }
+        onPointerLeave={canPreview ? onStop : undefined}
+        onPointerCancel={canPreview ? onStop : undefined}
         onClick={(event) => onOpen(event.currentTarget, item)}
       >
         {item.posterAvailable && (
@@ -146,7 +173,7 @@ function MotionCard({
             }}
           />
         )}
-        {item.videoAvailable && (
+        {canPreview && (
           <video
             className="motion-preview"
             preload="none"
@@ -158,44 +185,58 @@ function MotionCard({
             onError={(event) => onError(event.currentTarget)}
           />
         )}
+        {shortForm?.featured && <span className="motion-badge">Featured</span>}
         {featured && <span className="motion-badge">★ FEATURED SHOWREEL</span>}
         {item.videoAvailable && (
           <span className="motion-play" aria-hidden="true">
             <Play
-              size={featured ? 24 : 17}
+              size={featured || shortForm?.featured ? 24 : 17}
               fill="currentColor"
               strokeWidth={0}
             />
           </span>
         )}
-        <span className="motion-caption">
-          <span>
-            <span className="motion-label">
-              {featured ? "Showreel" : "Motion Graphics"}
+        {shortForm ? (
+          <>
+            {item.videoAvailable && item.duration !== undefined && (
+              <span className="motion-duration">{formatTime(item.duration)}</span>
+            )}
+            {!item.videoAvailable && (
+              <span className="motion-duration">Unavailable</span>
+            )}
+            <span className="motion-caption short-form-caption">
+              <span className="motion-label">{shortForm.category}</span>
+              <span className="motion-title">{item.title}</span>
+              <span id={descriptionId} className="short-form-description">
+                {shortForm.description}
+              </span>
+              {shortForm.type && (
+                <span className="short-form-type">{shortForm.type}</span>
+              )}
             </span>
-            <span className="motion-title">{item.title}</span>
+          </>
+        ) : (
+          <span className="motion-caption">
+            <span>
+              <span className="motion-label">
+                {featured ? "Showreel" : "Motion Graphics"}
+              </span>
+              <span className="motion-title">{item.title}</span>
+            </span>
+            {featured && item.duration !== undefined && (
+              <span className="motion-duration">{formatTime(item.duration)}</span>
+            )}
+            {!item.videoAvailable && (
+              <span className="motion-duration">Unavailable</span>
+            )}
           </span>
-          {featured && item.duration !== undefined && (
-            <span className="motion-duration">{formatTime(item.duration)}</span>
-          )}
-          {!item.videoAvailable && (
-            <span className="motion-duration">Unavailable</span>
-          )}
-        </span>
+        )}
       </button>
     </article>
   );
 }
 
-export function MotionGallery({
-  showreel,
-  projects,
-  variant,
-}: {
-  showreel?: GalleryItem;
-  projects: readonly GalleryItem[];
-  variant?: "hero" | "portrait";
-}) {
+export function MotionGallery({ showreel, projects, variant }: MotionGalleryProps) {
   const [selected, setSelected] = useState<GalleryItem | null>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const modalOpen = useRef(false);
@@ -278,32 +319,32 @@ export function MotionGallery({
     },
   };
 
-  const rows = (
-    <div
-      className={
-        variant === "portrait"
-          ? "motion-portrait-grid"
-          : showreel
-            ? "motion-rows"
-            : "motion-rows featured-grid"
-      }
-    >
+  const rows = variant === "short-form" ? (
+    <div className="short-form-grid">
+      {projects.map((item, index) => (
+        <MotionCard
+          key={item.id}
+          id={item.id}
+          item={item}
+          sizes={
+            index === 0
+              ? "(max-width: 640px) 90vw, (max-width: 1099px) 45vw, 530px"
+              : "(max-width: 640px) 90vw, (max-width: 1099px) 45vw, 270px"
+          }
+          shortForm={{ ...item, featured: index === 0 }}
+          {...cardHandlers}
+        />
+      ))}
+    </div>
+  ) : (
+    <div className={showreel ? "motion-rows" : "motion-rows featured-grid"}>
       {Array.from({ length: Math.ceil(projects.length / 2) }, (_, row) => (
         <div className="motion-row" key={row}>
           {projects.slice(row * 2, row * 2 + 2).map((item) => (
             <div className="motion-cell" key={item.id}>
               <MotionCard
-                id={
-                  showreel || variant === "portrait"
-                    ? item.id
-                    : `featured-${item.id}`
-                }
+                id={showreel ? item.id : `featured-${item.id}`}
                 item={item}
-                sizes={
-                  variant === "portrait"
-                    ? "(max-width: 400px) 90vw, 350px"
-                    : undefined
-                }
                 {...cardHandlers}
               />
             </div>

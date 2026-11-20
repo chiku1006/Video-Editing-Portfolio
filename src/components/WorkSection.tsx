@@ -5,15 +5,23 @@ import {
 } from "@/src/data/projects";
 import {
   getShowreel,
-  hasPublicAsset,
   withMediaAvailability,
 } from "@/src/data/public-assets";
+import { readMp4Duration } from "@/src/data/mp4-duration";
 import Link from "next/link";
 import { MotionGallery } from "./MotionGallery";
-import { ProjectCard } from "./ProjectCard";
 import "./work.css";
 
 export function WorkSection() {
+  const shortFormCategory = projectCategories[1];
+  const shortFormProjects = projects
+    .filter((project) => project.category === shortFormCategory)
+    .sort((a, b) => a.order - b.order)
+    .map((project) => ({
+      ...withMediaAvailability(project),
+      duration: readMp4Duration(project.videoSrc),
+    }));
+
   return (
     <section id="work" aria-labelledby="work-title" className="work-section">
       <div className="work-container">
@@ -45,43 +53,19 @@ export function WorkSection() {
             showreel={getShowreel()}
             projects={motionGalleryProjects.map(withMediaAvailability)}
           />
-          {projectCategories.map((category, index) => {
-            if (category === "Motion Graphics") return null;
-            const entries = projects
-              .filter((project) => project.category === category)
-              .sort((a, b) => a.order - b.order);
-            if (!entries.length) return null;
-            return (
-              <section key={category} aria-labelledby={`category-${index}`}>
-                <header className="work-categoryHeader">
-                  <span className="work-categoryIndex" aria-hidden="true">
-                    0{index + 1}
-                  </span>
-                  <h2 id={`category-${index}`}>{category}</h2>
-                  <span className="work-categoryCount">
-                    {String(entries.length).padStart(2, "0")}{" "}
-                    {entries.length === 1 ? "PROJECT" : "PROJECTS"}
-                  </span>
-                </header>
-                <div
-                  className={
-                    entries.length === 1
-                      ? "work-grid work-singleProject"
-                      : "work-grid"
-                  }
-                >
-                  {entries.map((project) => (
-                    <ProjectCard
-                      key={project.id}
-                      project={project}
-                      videoAvailable={hasPublicAsset(project.videoSrc)}
-                      posterAvailable={hasPublicAsset(project.posterSrc)}
-                    />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+          <section className="short-form" aria-labelledby="category-1">
+            <header className="short-form-header">
+              <p className="editorial-label">{shortFormCategory}</p>
+              <h2 id="category-1" className="work-title short-form-title">
+                Talking-Head <em>stories</em>
+              </h2>
+              <p className="short-form-intro">
+                Talking-head edits focused on clear communication, engaging captions,
+                smart pacing, and storytelling.
+              </p>
+            </header>
+            <MotionGallery projects={shortFormProjects} variant="short-form" />
+          </section>
         </div>
       </div>
     </section>
