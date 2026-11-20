@@ -88,6 +88,14 @@
   grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
 }
 
+#featured-short-01 .motion-poster {
+  object-position: center 28%;
+}
+
+#featured-short-02 .motion-poster {
+  object-position: center 12%;
+}
+
 .featured-grid .motion-label {
   display: none;
 }

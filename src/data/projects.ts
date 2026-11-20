@@ -51,6 +51,7 @@ export const projects: readonly Project[] = [
     description:
       "A talking-head edit focused on clear communication, readable captions, pacing, and storytelling.",
     order: 1,
+    homeFeaturedOrder: 2,
   },
   {
     id: "short-02",
@@ -64,6 +65,7 @@ export const projects: readonly Project[] = [
     software: [],
     description: "Project description pending.",
     order: 2,
+    homeFeaturedOrder: 3,
   },
   {
     id: "short-03",
@@ -115,7 +117,7 @@ export const motionGalleryProjects: readonly GalleryMedia[] = [
     videoSrc: "/videos/motion-02.mp4",
     posterSrc: "/images/motion-02.webp",
     posterAlt: "Still from Motion 02",
-    homeFeaturedOrder: 2,
+    homeFeaturedOrder: 4,
   },
   {
     id: "motion-03",
@@ -123,7 +125,6 @@ export const motionGalleryProjects: readonly GalleryMedia[] = [
     videoSrc: "/videos/motion-03.mp4",
     posterSrc: "/images/motion-03.webp",
     posterAlt: "Still from Motion 03",
-    homeFeaturedOrder: 3,
   },
   {
     id: "motion-04",
@@ -131,7 +132,6 @@ export const motionGalleryProjects: readonly GalleryMedia[] = [
     videoSrc: "/videos/motion-04.mp4",
     posterSrc: "/images/motion-04.webp",
     posterAlt: "Still from Motion 04",
-    homeFeaturedOrder: 4,
   },
   {
     id: "motion-05",
