@@ -1,0 +1,343 @@
+.work-section {
+  background: #000;
+  position: relative;
+  padding: 100px clamp(24px, 6vw, 100px) 112px;
+  scroll-margin-top: 10px;
+}
+.work-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.work-sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+  margin-bottom: 76px;
+}
+.work-eyebrow {
+  margin: 0 0 20px;
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  color: #929292;
+}
+.work-title {
+  margin: 0;
+  font-size: clamp(48px, 6vw, 80px);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+.work-title span {
+  color: #929292;
+}
+.work-intro {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #929292;
+}
+.work-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 88px;
+}
+.work-categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-top: 1px solid #262626;
+  padding: 24px 0 28px;
+}
+.work-categoryIndex {
+  color: #888;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.work-categoryHeader h2 {
+  margin: 0;
+  font-size: clamp(20px, 2.3vw, 28px);
+  letter-spacing: -0.035em;
+  font-weight: 500;
+}
+.work-categoryCount {
+  margin-left: auto;
+  color: #929292;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+.work-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px 28px;
+}
+.work-singleProject {
+  grid-template-columns: minmax(0, 1fr);
+}
+.work-card {
+  min-width: 0;
+}
+.work-player {
+  border: 1px solid #292929;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #101010;
+  transition: border-color 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.work-card:hover .work-player,
+.work-player:hover,
+.work-player:focus-within {
+  border-color: var(--accent-border);
+}
+.work-viewport {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0a0a0a;
+}
+.work-portrait .work-viewport {
+  aspect-ratio: 9 / 16;
+  max-height: min(720px, 75svh);
+}
+.work-video {
+  display: block;
+  width: auto;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  position: relative;
+  z-index: 1;
+}
+.work-previewLabel,
+.work-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #929292;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.work-previewLabel {
+  pointer-events: none;
+}
+.work-fallback svg,
+.work-previewLabel svg {
+  width: 32px;
+  height: 32px;
+  opacity: 0.5;
+}
+.work-fallback p {
+  margin: 0;
+  font-size: 11px;
+  color: #666;
+}
+.work-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid #242424;
+  background: #101010;
+}
+.work-controlButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #e7e7e7;
+  cursor: pointer;
+  transition:
+    background 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.work-controlButton:hover {
+  background: #262626;
+  color: white;
+}
+.work-controlButton:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.work-controlButton span {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.work-timeline {
+  flex: 1;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+}
+.work-timeline input {
+  --progress: 0%;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background: transparent;
+  border-radius: 4px;
+}
+.work-timeline input::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    var(--accent) var(--progress),
+    #353535 var(--progress)
+  );
+}
+.work-timeline input::-moz-range-track {
+  height: 3px;
+  border-radius: 3px;
+  background: #353535;
+}
+.work-timeline input::-moz-range-progress {
+  height: 3px;
+  background: var(--accent);
+}
+.work-timeline input::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -3.5px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+.work-timeline input::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  border: 0;
+  border-radius: 50%;
+}
+.work-timeline input:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.work-time {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: #a6a6a6;
+  white-space: nowrap;
+  padding: 0 6px;
+}
+.work-cardDetails {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 23px;
+}
+.work-projectCategory {
+  margin: 0 0 8px;
+  font-size: 9px;
+  color: #929292;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.work-cardDetails h3 {
+  margin: 0;
+  font-size: clamp(20px, 2vw, 25px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+.work-projectType {
+  color: #929292;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 230px;
+  text-align: right;
+}
+.work-notice {
+  margin: 0;
+  padding: 0 20px 12px;
+  color: #aaa;
+  font-size: 11px;
+}
+@media (max-width: 900px) {
+  .work-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .work-section {
+    padding: 64px 20px 72px;
+  }
+  .work-sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .work-categories {
+    gap: 56px;
+  }
+  .work-categoryHeader {
+    gap: 12px;
+    padding: 22px 0;
+  }
+  .work-categoryCount {
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+  .work-controls {
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 5px 8px;
+  }
+  .work-controlButton {
+    width: 40px;
+    height: 44px;
+  }
+  .work-timeline {
+    order: -1;
+    flex-basis: 100%;
+  }
+  .work-time {
+    margin-left: auto;
+    padding: 0 8px;
+  }
+  .work-cardDetails {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 18px;
+  }
+  .work-projectType {
+    text-align: right;
+    align-self: flex-end;
+    max-width: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .work-player,
+  .work-controlButton {
+    transition: none;
+  }
+}
